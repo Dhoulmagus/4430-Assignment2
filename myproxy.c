@@ -12,6 +12,12 @@
 #include <sys/stat.h>
 #include <crypt.h>
 #include "color.h"
+#define MAX_REQUEST_SIZE 8192
+
+
+
+
+
 
 int main(int argc, char** argv)
 {
@@ -21,12 +27,13 @@ int main(int argc, char** argv)
     printf("%sUsage: ./myproxy <Port>%s\n", BG_RED, DEFAULT);
     exit(-1);
   }
+  //TO-DO: Check if it is a valid port number
   int PORT = atoi(argv[1]);
 
   //debug
   printf("%smain(): PORT is now: %d%s\n", BG_YELLOW, PORT, DEFAULT);
 
-  // Create socket
+  // Create listening socket
   int sd = socket(AF_INET, SOCK_STREAM, 0);
   // Make port reusable
   long val = 1;
@@ -36,9 +43,7 @@ int main(int argc, char** argv)
     exit(-1);
   }
 
-  int client_sd;
   struct sockaddr_in server_addr;
-  struct sockaddr_in client_addr;
 
   memset(&server_addr,0,sizeof(server_addr));
   server_addr.sin_family=AF_INET;
@@ -49,22 +54,23 @@ int main(int argc, char** argv)
   if(bind(sd,(struct sockaddr *) &server_addr,sizeof(server_addr))<0)
   {
     printf("bind error: %s (Errno:%d)\n",strerror(errno),errno);
-    exit(0);
+    exit(-1);
   }
 
   // Listen socket
   if(listen(sd,3)<0)
   {
     printf("listen error: %s (Errno:%d)\n",strerror(errno),errno);
-    exit(0);
+    exit(-1);
   }
-
-  // Accept connection
-  int addr_len = sizeof(client_addr);
 
   //debug
   printf("%sWaiting for Incoming connections...%s\n", BG_PURPLE, DEFAULT);
 
+  // Accept connection
+  struct sockaddr_in client_addr;
+  int addr_len = sizeof(client_addr);
+  int client_sd;
   if ((client_sd=accept(sd, (struct sockaddr *)&client_addr, &addr_len))<0)
   {
     printf("%sAccept error%s\n", BG_RED, DEFAULT);
@@ -76,11 +82,11 @@ int main(int argc, char** argv)
 
   while(1)
   {
-    char buf[1000];
-    char payload[1000];
-    memset(payload, 0, sizeof(payload));
-    strcpy(buf, "");
-    int bytesReceived=read(client_sd,buf,sizeof(buf));
+    char clientRequest[MAX_REQUEST_SIZE];
+    //char payload[1000];
+    //memset(payload, 0, sizeof(payload));
+    strcpy(clientRequest, "");
+    int bytesReceived = read(client_sd, clientRequest, sizeof(clientRequest));
     if(bytesReceived < 0)
 		{
 			printf("%sreceive error: %s (Errno:%d)%s\n",BG_RED, strerror(errno), errno, DEFAULT);
@@ -89,13 +95,17 @@ int main(int argc, char** argv)
     else if (bytesReceived == 0)
     {
       printf("%sClient closed the connection. %s\n", BG_YELLOW, DEFAULT);
-      exit(-1);
+      exit(0);
     }
 
-    printf("%sbuf is: %s\n", BG_YELLOW, DEFAULT);
-    printf("%s", buf);
-    printf("%sEnd of buf%s\n", BG_YELLOW, DEFAULT);
+    printf("%sclientRequest is: %s\n", BG_YELLOW, DEFAULT);
+    printf("%s", BG_BLUE);
+    printf("%s", clientRequest);
+    printf("%s\n", DEFAULT);
+    printf("%sEnd of clientRequest%s\n", BG_YELLOW, DEFAULT);
   }
+
+
 
 
 
