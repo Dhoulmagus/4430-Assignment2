@@ -30,7 +30,7 @@ int main(int argc, char** argv)
   int sd = socket(AF_INET, SOCK_STREAM, 0);
   // Make port reusable
   long val = 1;
-  if (setsockopt(sd, SOL_SOCKET, SO_REUSEADDR, &val, sizeof(long) == -1))
+  if (setsockopt(sd, SOL_SOCKET, SO_REUSEADDR, &val, sizeof(long)) == -1)
   {
     perror("setsockopt");
     exit(-1);
