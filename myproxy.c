@@ -14,7 +14,14 @@
 #include "color.h"
 #define MAX_REQUEST_SIZE 8192
 
-
+void printMsg(char* msg)
+{
+  printf("%sclientRequest is: %s\n", BG_YELLOW, DEFAULT);
+  printf("%s", BG_BLUE);
+  printf("%s", msg);
+  printf("%s", DEFAULT);
+  printf("%sEnd of clientRequest%s\n", BG_YELLOW, DEFAULT);
+}
 
 
 
@@ -83,8 +90,6 @@ int main(int argc, char** argv)
   while(1)
   {
     char clientRequest[MAX_REQUEST_SIZE];
-    //char payload[1000];
-    //memset(payload, 0, sizeof(payload));
     strcpy(clientRequest, "");
     int bytesReceived = read(client_sd, clientRequest, sizeof(clientRequest));
     if(bytesReceived < 0)
@@ -101,7 +106,7 @@ int main(int argc, char** argv)
     printf("%sclientRequest is: %s\n", BG_YELLOW, DEFAULT);
     printf("%s", BG_BLUE);
     printf("%s", clientRequest);
-    printf("%s\n", DEFAULT);
+    printf("%s", DEFAULT);
     printf("%sEnd of clientRequest%s\n", BG_YELLOW, DEFAULT);
   }
 
