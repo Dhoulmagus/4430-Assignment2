@@ -80,12 +80,17 @@ int main(int argc, char** argv)
     char payload[1000];
     memset(payload, 0, sizeof(payload));
     strcpy(buf, "");
-    int bytesReceived;
-    if((bytesReceived=read(client_sd,buf,sizeof(buf)))<0)
+    int bytesReceived=read(client_sd,buf,sizeof(buf));
+    if(bytesReceived < 0)
 		{
-			printf("receive error: %s (Errno:%d)\n", strerror(errno),errno);
+			printf("%sreceive error: %s (Errno:%d)%s\n",BG_RED, strerror(errno), errno, DEFAULT);
 			exit(-1);
 		}
+    else if (bytesReceived == 0)
+    {
+      printf("%sClient closed the connection. %s\n", BG_YELLOW, DEFAULT);
+      exit(-1);
+    }
 
     printf("%sbuf is: %s\n", BG_YELLOW, DEFAULT);
     printf("%s", buf);
