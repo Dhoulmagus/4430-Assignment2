@@ -80,8 +80,8 @@ int main(int argc, char** argv)
     char payload[1000];
     memset(payload, 0, sizeof(payload));
     strcpy(buf, "");
-    int len;
-    if((len=read(client_sd,buf,sizeof(buf)))<0)
+    int bytesReceived;
+    if((bytesReceived=read(client_sd,buf,sizeof(buf)))<0)
 		{
 			printf("receive error: %s (Errno:%d)\n", strerror(errno),errno);
 			pthread_exit(0);
