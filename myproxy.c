@@ -84,7 +84,7 @@ int main(int argc, char** argv)
     if((bytesReceived=read(client_sd,buf,sizeof(buf)))<0)
 		{
 			printf("receive error: %s (Errno:%d)\n", strerror(errno),errno);
-			pthread_exit(0);
+			exit(-1);
 		}
 
     printf("%sbuf is: %s\n", BG_YELLOW, DEFAULT);
