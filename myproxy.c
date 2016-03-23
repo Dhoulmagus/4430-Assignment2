@@ -316,9 +316,9 @@ void respond200AndObjectToClient(char* URL, int client_sd)
       send(client_sd, block, readSize, MSG_NOSIGNAL);
   } while(readSize > 0);
 
-  memset(block, 0, sizeof(block));
-  sprintf(block, "\r\n");
-  send(client_sd, block, strlen(block), MSG_NOSIGNAL);
+  // memset(block, 0, sizeof(block));
+  // sprintf(block, "\r\n");
+  // send(client_sd, block, strlen(block), MSG_NOSIGNAL);
 }
 
 
