@@ -1,3 +1,5 @@
+#define _XOPEN_SOURCE
+#define _GNU_SOURCE
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
@@ -11,7 +13,9 @@
 #include <netdb.h>
 #include <sys/stat.h>
 #include <crypt.h>
+#include <time.h>
 #include "color.h"
+#define cachePath "./cache/"
 
 struct requestAttributes
 {
@@ -176,6 +180,12 @@ struct requestAttributes parseRequestMessage(char* requestMessage)
   return messageAttributes;
 }
 
+void getTimeStringfromRawTime(char* timeString, time_t rawtime)
+{
+  struct tm* testtmp = gmtime(&rawtime);
+  strftime(timeString, 256, "%a, %d %b %Y %X %Z", testtmp);
+}
+
 void printMsg(char* msg)
 {
   printf("%sclientRequest is: %s\n", BG_YELLOW, DEFAULT);
@@ -183,6 +193,22 @@ void printMsg(char* msg)
   printf("%s", msg);
   printf("%s", DEFAULT);
   printf("%sEnd of clientRequest%s\n", BG_YELLOW, DEFAULT);
+}
+
+time_t getRawTimefromTimeString(char* buf)
+{
+  struct tm testtm;
+  strptime(buf, "%a, %d %b %Y %X %Z", &testtm);
+  return mktime(&testtm)+8*60*60;
+}
+
+void hashURL(char* filename, char* URL)
+{
+  strncpy(filename, crypt(URL, "$1$00$")+6, 23);
+  int i;
+  for (i = 0; i < 22; ++i)
+    if (filename[i] == '/')
+      filename[i] = '_';
 }
 
 int main(int argc, char** argv)
@@ -204,8 +230,41 @@ int main(int argc, char** argv)
 
   //printf("%srequestLine is: %s%s\n", BG_YELLOW, getRequestLine(buf), DEFAULT);
 
-  parseRequestMessage(buf);
+  // parseRequestMessage(buf);
+  //
+  // struct hostent* hp = gethostbyname("www.cse.cuhk.edu.hk");
+  // struct sockaddr_in addr;
+  // memset(&addr, 0, sizeof(addr));
+  // addr.sin_addr.s_addr = inet_addr(inet_ntoa(hp->h_addr));
+  //
+  // printf("gethostbyname: /%s/\n", inet_ntoa(hp->h_addr));
 
+  char anotherBuf[] = "Mon, 21 Oct 2002 12:30:20 GMT";
+  time_t IMS = getRawTimefromTimeString(anotherBuf);
+
+  printf("IMS is now: /%ld/\n", IMS);
+
+  char URLbuf[] = "http://www.cse.cuhk.edu.hk/";
+  char filename[23];
+  memset(filename, 0, sizeof(filename));
+  hashURL(filename, URLbuf);
+
+  printf("filename is now: /%s/\n", filename);
+
+  struct stat statbuf;
+  int statReturnValue = stat(cachePath, &statbuf);
+  if (statReturnValue == -1)
+  {
+    printf("stat faliure!\n");
+  }
+  else
+  {
+    printf("modification time is: /%ld/\n", statbuf.st_mtime);
+  }
+
+  char timeString[256];
+  getTimeStringfromRawTime(timeString, IMS);
+  printf("time String from IMS is now: /%s/\n", timeString);
 
   return 0;
 }
