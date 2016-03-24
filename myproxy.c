@@ -843,6 +843,7 @@ int main(int argc, char** argv)
       //debug
       else if (bytesReceived == 0)
       {
+        printf("%sServer Closed the connection%s\n", BG_RED, DEFAULT);
         continue;
       }
       else
@@ -929,8 +930,6 @@ int main(int argc, char** argv)
       }
     }
 
-    printf("ok here 3\n");
-
     // Now forward the response back to client
     if (respondTempFile(client_sd) == -1)
     {
@@ -943,6 +942,16 @@ int main(int argc, char** argv)
     if (serverResponseAttributes.serverClose)
     {
       printf("%sThe server's response has Connection: close. Close server_sd now. %s\n", BG_PURPLE, DEFAULT);
+      server_sd_reusable = 0;
+      close(server_sd);
+    }
+
+    // call recv() once to test if server closed the connection
+    char testByte;
+    bytesReceived = recv(server_sd, &testByte, 1, 0);
+    if (bytesReceived == 0)
+    {
+      printf("%sThe server silently closed the Connection. Close server_sd now. %s\n", BG_PURPLE, DEFAULT);
       server_sd_reusable = 0;
       close(server_sd);
     }
