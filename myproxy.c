@@ -494,6 +494,9 @@ int cacheServerResponse(char* responseHeader, char* URL, int server_sd, int has_
       if (readSize == 0) // has read up the response body
         break;
 
+      //debug
+      printf("block is now: /%s%s%s/\n", BG_BLUE, block, DEFAULT);
+
       // Write the body block to both cache and temp
       fwrite(block, 1, strlen(block), fp);
       fwrite(block, 1, strlen(block), temp);
@@ -868,6 +871,8 @@ int main(int argc, char** argv)
           break;
         }
       }
+
+      printf("%sok here?2%s\n", FG_RED, DEFAULT);
     }
     // 304 case
     else if (serverResponseAttributes.statusCode == 304)
@@ -879,6 +884,8 @@ int main(int argc, char** argv)
           printf("%srespond Error%s\n", BG_RED, DEFAULT);
           break;
         }
+
+
         goto forwardBackComplete;
       }
       else
