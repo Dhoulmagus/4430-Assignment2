@@ -211,17 +211,134 @@ void hashURL(char* filename, char* URL)
       filename[i] = '_';
 }
 
+struct responseAttributes
+{
+  int statusCode;
+  int contentLength;
+  int isChunked;
+  int serverClose;
+  int isGzip;
+};
+
+struct responseAttributes parseResponseHeader(char* responseHeader)
+{
+  struct responseAttributes headerAttributes;
+
+  char responseHeaderCopy[8192];
+  strcpy(responseHeaderCopy, responseHeader);
+  char* lineSavePtr = malloc(200);
+  char* wordSavePtr = malloc(100);
+  char* tofree1 = lineSavePtr;
+  char* tofree2 = wordSavePtr;
+  char* lineToken;
+  char* wordToken;
+
+  // Parse and get the first line, i.e. the Status Line
+  lineToken = strtok_r(responseHeaderCopy, "\r\n", &lineSavePtr);
+  char statusLine[100];
+  strcpy(statusLine, lineToken);
+  //debug
+  printf("parseResponseHeader(): Status Line is: /%s%s%s/\n", BG_YELLOW, statusLine, DEFAULT);
+
+  // Parse the first lint to get Status Code
+  char statusLineCopy[100];
+  strcpy(statusLineCopy, statusLine);
+  wordToken = strtok_r(statusLineCopy, " ", &wordSavePtr);
+  wordToken = strtok_r(NULL, " ", &wordSavePtr);
+  headerAttributes.statusCode = atoi(wordToken);
+
+  //debug
+  printf("parseResponseHeader(): Status code is: /%s%d%s/\n", BG_YELLOW, headerAttributes.statusCode, DEFAULT);
+
+  // Done processing the Status Line here
+  // Now parse and get Header Lines
+  while ((lineToken = strtok_r(NULL, "\r\n", &lineSavePtr)) != NULL)
+  {
+    char lineCopy[200];
+    strcpy(lineCopy, lineToken);
+
+    // Get Header Name
+    char* headerName = strtok_r(lineCopy, ":", &wordSavePtr);
+
+    // Content-Length: ...
+    if (strcmp(headerName, "Content-Length") == 0)
+    {
+      wordToken = strtok_r(NULL, ":", &wordSavePtr);
+      headerAttributes.contentLength = atoi(wordToken);
+      //debug
+      printf("contentLength is: /%s%d%s/\n", BG_YELLOW, headerAttributes.contentLength, DEFAULT);
+
+    }
+
+    // Transfer-Encoding: chunked
+    else if (strcmp(headerName, "Transfer-Encoding") == 0)
+    {
+      if (strstr(lineToken, "chunked") != NULL)
+      {
+        headerAttributes.isChunked = 1;
+        printf("Transfer-Encoding is chunked\n");
+      }
+    }
+
+    // Proxy-Connection = close
+    // or Connection = close
+    else if (strcmp(headerName, "Proxy-Connection") == 0 || strcmp(headerName, "Connection") == 0)
+    {
+      if (strstr(lineToken, "close") != NULL)
+      {
+        headerAttributes.serverClose = 1;
+        printf("Server respond connection close.\n");
+      }
+    }
+
+    // Content-Encoding: gzip
+    else if (strcmp(headerName, "Content-Encoding") == 0)
+    {
+      if (strstr(lineToken, "gzip") != NULL)
+      {
+        headerAttributes.isGzip = 1;
+        printf("Content is gzip");
+      }
+    }
+  }
+
+  free(tofree1);
+  free(tofree2);
+  return headerAttributes;
+}
+
+// int fileIsGzip(char* filepath)
+// {
+//   FILE* fp = fopen(filepath, "rb");
+//   char oneByte;
+//   int readSize = fread(&oneByte, 1, 1, fp);
+//   if (readSize <= 0)
+//     return -1;
+//   if (oneByte != 0x1f)
+//     return -1;
+//
+//   readSize = fread(&oneByte, 1, 1, fp);
+//   if (readSize <= 0)
+//     return -1;
+// }
+
+
+
 int main(int argc, char** argv)
 {
   char buf[8192];
-  sprintf(buf, "GET http://www.cse.cuhk.edu.hk:32/diulei/fuck.pdf HTTP/1.1\r\n"
-  "Host: www.cse.cuhk.edu.hk\r\n"
-  "User-Agent: Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:45.0) Gecko/20100101 Firefox/45.0\r\n"
-  "Accept: text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8\r\n"
-  "Accept-Language: en-US,en;q=0.8,zh-CN;q=0.7,zh-HK;q=0.5,ja;q=0.3,zh-TW;q=0.2\r\n"
-  "Accept-Encoding: gzip, deflate\r\n"
-  "Connection: close\r\n"
-  "\r\n");
+  // sprintf(buf, "GET http://www.cse.cuhk.edu.hk:32/diulei/fuck.pdf HTTP/1.1\r\n"
+  // "Host: www.cse.cuhk.edu.hk\r\n"
+  // "User-Agent: Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:45.0) Gecko/20100101 Firefox/45.0\r\n"
+  // "Accept: text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8\r\n"
+  // "Accept-Language: en-US,en;q=0.8,zh-CN;q=0.7,zh-HK;q=0.5,ja;q=0.3,zh-TW;q=0.2\r\n"
+  // "Accept-Encoding: gzip, deflate\r\n"
+  // "Connection: close\r\n"
+  // "\r\n");
+  sprintf(buf, "HTTP/1.1 200 OK\r\n"
+  "Date: Sun, 27 Feb 2011 04:09:33 GMT\r\n"
+  "Transfer-Encoding: chunked\r\n"
+  "Proxy-Connection: close\r\n\r\n");
 
   // printMsg(buf);
   //
@@ -239,32 +356,35 @@ int main(int argc, char** argv)
   //
   // printf("gethostbyname: /%s/\n", inet_ntoa(hp->h_addr));
 
-  char anotherBuf[] = "Mon, 21 Oct 2002 12:30:20 GMT";
-  time_t IMS = getRawTimefromTimeString(anotherBuf);
+  // char anotherBuf[] = "Mon, 21 Oct 2002 12:30:20 GMT";
+  // time_t IMS = getRawTimefromTimeString(anotherBuf);
+  //
+  // printf("IMS is now: /%ld/\n", IMS);
+  //
+  // char URLbuf[] = "http://www.cse.cuhk.edu.hk/";
+  // char filename[23];
+  // memset(filename, 0, sizeof(filename));
+  // hashURL(filename, URLbuf);
+  //
+  // printf("filename is now: /%s/\n", filename);
+  //
+  // struct stat statbuf;
+  // int statReturnValue = stat(cachePath, &statbuf);
+  // if (statReturnValue == -1)
+  // {
+  //   printf("stat faliure!\n");
+  // }
+  // else
+  // {
+  //   printf("modification time is: /%ld/\n", statbuf.st_mtime);
+  // }
+  //
+  // char timeString[256];
+  // getTimeStringfromRawTime(timeString, IMS);
+  // printf("time String from IMS is now: /%s/\n", timeString);
 
-  printf("IMS is now: /%ld/\n", IMS);
-
-  char URLbuf[] = "http://www.cse.cuhk.edu.hk/";
-  char filename[23];
-  memset(filename, 0, sizeof(filename));
-  hashURL(filename, URLbuf);
-
-  printf("filename is now: /%s/\n", filename);
-
-  struct stat statbuf;
-  int statReturnValue = stat(cachePath, &statbuf);
-  if (statReturnValue == -1)
-  {
-    printf("stat faliure!\n");
-  }
-  else
-  {
-    printf("modification time is: /%ld/\n", statbuf.st_mtime);
-  }
-
-  char timeString[256];
-  getTimeStringfromRawTime(timeString, IMS);
-  printf("time String from IMS is now: /%s/\n", timeString);
+  struct responseAttributes b;
+  b = parseResponseHeader(buf);
 
   return 0;
 }
