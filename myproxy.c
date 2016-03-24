@@ -938,6 +938,7 @@ int main(int argc, char** argv)
     }
 
     forwardBackComplete:
+    oneLoopisDone:
 
     if (serverResponseAttributes.serverClose)
     {
@@ -956,8 +957,6 @@ int main(int argc, char** argv)
       close(server_sd);
     }
 
-
-    oneLoopisDone:
     if (server_response_has_no_body)
       break;
 
