@@ -33,6 +33,8 @@ struct requestAttributes
   int noCache;
 };
 
+/** For debug use
+ */
 void printRequestAttributes(struct requestAttributes* a)
 {
   printf("=== request Attributes ===\n");
@@ -94,7 +96,7 @@ struct requestAttributes parseRequestMessage(char* requestMessage)
   char requestLine[200];
   strcpy(requestLine, lineToken);
   //debug
-  printf("Request Line is: %s%s%s\n", BG_YELLOW, requestLine, DEFAULT);
+  //printf("Request Line is: %s%s%s\n", BG_YELLOW, requestLine, DEFAULT);
 
   // Parse the first line to get method
   char requestLineCopy[200];
@@ -103,7 +105,7 @@ struct requestAttributes parseRequestMessage(char* requestMessage)
   char method[15];
   strcpy(method, wordToken);
   //debug
-  printf("Method is: %s%s%s\n", BG_YELLOW, method, DEFAULT);
+  //printf("Method is: %s%s%s\n", BG_YELLOW, method, DEFAULT);
   if (strcmp(method, "GET") != 0)
     messageAttributes.methodNotGET = 1;
 
@@ -113,7 +115,7 @@ struct requestAttributes parseRequestMessage(char* requestMessage)
   strcpy(URL, wordToken);
   strcpy(messageAttributes.URL, URL);
   //debug
-  printf("URL is: %s%s%s\n", BG_YELLOW, URL, DEFAULT);
+  //printf("URL is: %s%s%s\n", BG_YELLOW, URL, DEFAULT);
 
   // Parse the URL to get the port
   char URLCopy[200];
@@ -130,7 +132,7 @@ struct requestAttributes parseRequestMessage(char* requestMessage)
     messageAttributes.port = atoi(wordToken);
   }
   //debug
-  printf("port is: %s%d%s\n", BG_YELLOW, messageAttributes.port, DEFAULT);
+  //printf("port is: %s%d%s\n", BG_YELLOW, messageAttributes.port, DEFAULT);
 
   // Keep Parsing the URL to get the file name
   char fileName[100];
@@ -160,7 +162,7 @@ struct requestAttributes parseRequestMessage(char* requestMessage)
   }
   strcpy(messageAttributes.extension, extension);
   //debug
-  printf("extension is: %s%s%s\n", BG_YELLOW, messageAttributes.extension, DEFAULT);
+  //printf("extension is: %s%s%s\n", BG_YELLOW, messageAttributes.extension, DEFAULT);
   if (strcmp(extension, "html") == 0 || strcmp(extension, "jpg") == 0 || strcmp(extension, "gif") == 0 ||
       strcmp(extension, "txt")  == 0 || strcmp(extension, "pdf") == 0)
       messageAttributes.typeNeedsCaching = 1;
@@ -175,14 +177,13 @@ struct requestAttributes parseRequestMessage(char* requestMessage)
     // Get Header Name
     char* headerName = strtok_r(lineCopy, ":", &wordSavePtr);
 
-
     // Host: ...
     if (strcmp(headerName, "Host") == 0)
     {
       wordToken = strtok_r(NULL, ":", &wordSavePtr);
       strcpy(messageAttributes.Host, wordToken+1);
       //debug
-      printf("Host is: %s%s%s\n", BG_YELLOW, messageAttributes.Host, DEFAULT);
+      //printf("Host is: %s%s%s\n", BG_YELLOW, messageAttributes.Host, DEFAULT);
     }
     // Proxy-Connection = close
     // or Connection = close
@@ -197,7 +198,7 @@ struct requestAttributes parseRequestMessage(char* requestMessage)
       wordToken = strtok_r(NULL, ":", &wordSavePtr);
       messageAttributes.IMS = getRawTimefromTimeString(wordToken+1);
       //debug
-      printf("IMS is: %s%ld%s\n", BG_YELLOW, messageAttributes.IMS, DEFAULT);
+      //printf("IMS is: %s%ld%s\n", BG_YELLOW, messageAttributes.IMS, DEFAULT);
     }
     // Cache-Control: no-cache
     else if (strcmp(headerName, "Cache-Control") == 0)
@@ -209,7 +210,6 @@ struct requestAttributes parseRequestMessage(char* requestMessage)
 
   free(tofree1);
   free(tofree2);
-  // printRequestAttributes(&messageAttributes);
   return messageAttributes;
 }
 
@@ -333,6 +333,9 @@ int respondCache(char* URL, int client_sd)
   return 0;
 }
 
+/**The difference between respondCache() is that
+ * this respond the file ./cache/temp to the client
+ */
 int respondTempFile(int client_sd)
 {
   char block[512];
@@ -390,7 +393,7 @@ struct responseAttributes parseResponseHeader(char* responseHeader)
   //debug
   printf("parseResponseHeader(): Status Line is: /%s%s%s/\n", BG_YELLOW, statusLine, DEFAULT);
 
-  // Parse the first lint to get Status Code
+  // Parse the first line to get Status Code
   char statusLineCopy[100];
   strcpy(statusLineCopy, statusLine);
   wordToken = strtok_r(statusLineCopy, " ", &wordSavePtr);
@@ -845,7 +848,7 @@ int main(int argc, char** argv)
       else if (bytesReceived == 0)
       {
         printf("%sServer Closed the connection%s\n", BG_RED, DEFAULT);
-        continue;
+        break; // Maybe problematic
       }
       else
       {
@@ -950,6 +953,7 @@ int main(int argc, char** argv)
 
     // This part is a workaround for the mysterious phenomenon
     // that the server_sd, after a c->p->s->p->c loop, cannot be reused
+    // even though server did not respond "Connection: close" or likewise
     // Here call recv() once to test if server closed the connection at its side
     // if server did, close the server_sd
     char testByte;
