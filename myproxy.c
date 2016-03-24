@@ -77,8 +77,7 @@ struct requestAttributes parseRequestMessage(char* requestMessage)
   struct requestAttributes messageAttributes
   = {0, 0, 0, "", "", "", 0, 0, 0};
 
-  printRequestAttributes(&messageAttributes);
-
+  //printRequestAttributes(&messageAttributes);
 
   // Get ready to strtok
   char requestMessageCopy[8192];
@@ -210,7 +209,7 @@ struct requestAttributes parseRequestMessage(char* requestMessage)
 
   free(tofree1);
   free(tofree2);
-  printRequestAttributes(&messageAttributes);
+  // printRequestAttributes(&messageAttributes);
   return messageAttributes;
 }
 
@@ -360,7 +359,8 @@ struct responseAttributes
 
 struct responseAttributes parseResponseHeader(char* responseHeader)
 {
-  struct responseAttributes headerAttributes;
+  struct responseAttributes headerAttributes
+  = {0, 0, 0, 0, 0};
 
   char responseHeaderCopy[8192];
   strcpy(responseHeaderCopy, responseHeader);
@@ -647,8 +647,8 @@ int main(int argc, char** argv)
     strcpy(buf, clientRequest);
 
     //debug
-    printf("%sok here?1%s\n", FG_RED, DEFAULT);
-    printRequestAttributes(&clientRequestAttributes);
+    // printf("%sok here?1%s\n", FG_RED, DEFAULT);
+    // printRequestAttributes(&clientRequestAttributes);
 
     // If the method is not GET, simply ignore it
     if (clientRequestAttributes.methodNotGET)
