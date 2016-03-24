@@ -516,6 +516,21 @@ int temporarilyStoreServerResponse(char* responseHeader, int server_sd, int has_
   return 0;
 }
 
+void printRequestAttributes(struct requestAttributes* a)
+{
+  printf("=== request Attributes ===\n");
+  printf("methodNotGET is %s%d%s\n", BG_BLUE, a->methodNotGET, DEFAULT);
+  printf("typeNeedsCaching is %s%d%s\n", BG_BLUE, a->typeNeedsCaching, DEFAULT);
+  printf("port is %s%d%s\n", BG_BLUE, a->port, DEFAULT);
+  printf("extension is %s%s%s\n", BG_BLUE, a->extension, DEFAULT);
+  printf("Host is %s%s%s\n", BG_BLUE, a->Host, DEFAULT);
+  printf("URL is %s%s%s\n", BG_BLUE, a->URL, DEFAULT);
+  printf("clientClose is %s%d%s\n", BG_BLUE, a->clientClose, DEFAULT);
+  printf("IMS is %s%ld%s\n", BG_BLUE, a->IMS, DEFAULT);
+  printf("noCache is %s%d%s\n", BG_BLUE, a->noCache, DEFAULT);
+  printf("=== End of request Attributes ===\n");
+}
+
 
 int main(int argc, char** argv)
 {
@@ -625,6 +640,7 @@ int main(int argc, char** argv)
 
     //debug
     printf("%sok here?1%s\n", FG_RED, DEFAULT);
+    printRequestAttributes(&clientRequestAttributes);
 
     // If the method is not GET, simply ignore it
     if (clientRequestAttributes.methodNotGET)
