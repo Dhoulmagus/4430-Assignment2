@@ -848,7 +848,7 @@ int main(int argc, char** argv)
       }
       else
       {
-        printf("%sReceived one byte%s ", BG_PURPLE, DEFAULT);
+        //printf("%sReceived one byte%s ", BG_PURPLE, DEFAULT);
 
         if (strstr(receiveBuffer, "\r\n\r\n") != NULL)
           break;
