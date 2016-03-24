@@ -567,7 +567,7 @@ int main(int argc, char** argv)
   int PORT = atoi(argv[1]);
 
   //debug
-  printf("%smain(): PORT is now: %d%s\n", BG_YELLOW, PORT, DEFAULT);
+  //printf("%smain(): PORT is now: %d%s\n", BG_YELLOW, PORT, DEFAULT);
 
   // Create listening socket
   int sd = socket(AF_INET, SOCK_STREAM, 0);
@@ -580,7 +580,6 @@ int main(int argc, char** argv)
   }
 
   struct sockaddr_in server_addr;
-
   memset(&server_addr,0,sizeof(server_addr));
   server_addr.sin_family=AF_INET;
   server_addr.sin_addr.s_addr=htonl(INADDR_ANY);
@@ -600,7 +599,6 @@ int main(int argc, char** argv)
     exit(-1);
   }
 
-  //debug
   printf("%sWaiting for Incoming connections...%s\n", BG_PURPLE, DEFAULT);
 
   // Accept connection
@@ -630,6 +628,7 @@ int main(int argc, char** argv)
     is_case_4 = 0;
     file_already_cached = 0;
 
+    // Read HTTP Request from the client
     char clientRequest[MAX_REQUEST_SIZE];
     strcpy(clientRequest, "");
     int bytesReceived = read(client_sd, clientRequest, sizeof(clientRequest));
@@ -640,7 +639,7 @@ int main(int argc, char** argv)
 		}
     else if (bytesReceived == 0)
     {
-      printf("%sClient closed the connection. %s\n", BG_YELLOW, DEFAULT);
+      printf("%sClient closed the connection. %s\n", BG_RED, DEFAULT);
       exit(0);
     }
 
@@ -649,6 +648,7 @@ int main(int argc, char** argv)
     printf("/%s%s%s/\n",BG_BLUE, clientRequest, DEFAULT);
     printf("%s=== End of clientRequest ===%s\n", BG_YELLOW, DEFAULT);
 
+    // Parse the HTTP Request to struct requestAttributes
     struct requestAttributes clientRequestAttributes = parseRequestMessage(clientRequest);
 
     // If server_sd can be reused, reuse it
@@ -668,7 +668,7 @@ int main(int argc, char** argv)
     // If the method is not GET, simply ignore it
     if (clientRequestAttributes.methodNotGET)
     {
-      printf("%sIgnored non-GET request%s\n", BG_PURPLE, DEFAULT);
+      printf("%sIgnored a non-GET request.%s\n", BG_PURPLE, DEFAULT);
       continue;
     }
 
@@ -841,8 +841,7 @@ int main(int argc, char** argv)
       //debug
       if (bytesReceived == 0)
       {
-        printf("fuck\n");
-        exit(-1);
+        printf("fuck ");
       }
 
       if (strstr(receiveBuffer, "\r\n\r\n") != NULL)
