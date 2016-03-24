@@ -663,16 +663,20 @@ int main(int argc, char** argv)
 
     //debug
     // printf("%sok here?1%s\n", FG_RED, DEFAULT);
-    // printRequestAttributes(&clientRequestAttributes);
+    printRequestAttributes(&clientRequestAttributes);
 
     // If the method is not GET, simply ignore it
     if (clientRequestAttributes.methodNotGET)
+    {
+      printf("%sIgnored non-GET request%s\n", BG_PURPLE, DEFAULT);
       continue;
+    }
 
     // If the file type is not the ones that need caching,
     // simply forwards the request to the web server
     if (!clientRequestAttributes.typeNeedsCaching)
     {
+      printf("%sThe request file type does not need caching. Simply forward the request to server now.%s\n", BG_PURPLE, DEFAULT);
       int byteSent = send(server_sd, buf, strlen(buf), MSG_NOSIGNAL);
       if (byteSent < 0)
       {
@@ -682,12 +686,11 @@ int main(int argc, char** argv)
     }
     else
     {
-
-
       // If the file is not cached in MYPROXY,
       // simply forwards it to the web server
       if (getFileModificationTime(clientRequestAttributes.URL) == -1)
       {
+        printf("%sThe file is not cached on the proxy. Simply forward the request to server now. %s\n", BG_PURPLE, DEFAULT);
         int byteSent = send(server_sd, buf, strlen(buf), MSG_NOSIGNAL);
         if (byteSent < 0)
         {
