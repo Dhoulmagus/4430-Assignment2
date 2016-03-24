@@ -653,7 +653,8 @@ int main(int argc, char** argv)
 
     // If server_sd can be reused, reuse it
     // Else, stablish a connection to server
-    if (server_sd_reusable){}
+    if (server_sd_reusable)
+      printf("Server sd is reusable. Reuse server_sd: /%s%d%s/ now. \n", BG_PURPLE, server_sd, DEFAULT);
     else
       server_sd = connectToServer(clientRequestAttributes.Host, clientRequestAttributes.port);
     server_sd_reusable = 1;
@@ -678,6 +679,7 @@ int main(int argc, char** argv)
     {
       printf("%sThe request file type does not need caching. Simply forward the request to server now.%s\n", BG_PURPLE, DEFAULT);
       int byteSent = send(server_sd, buf, strlen(buf), MSG_NOSIGNAL);
+      printf("Sent /%s%d%s/ bytes to the server. \n", BG_PURPLE, byteSent, DEFAULT);
       if (byteSent < 0)
       {
         printf("%sForward HTTP Request Error%s\n", BG_RED, DEFAULT);
@@ -836,6 +838,14 @@ int main(int argc, char** argv)
         printf("%sreceive HTTP response error%s\n", BG_RED, DEFAULT);
         break;
       }
+
+      //debug
+      if (bytesReceived == 0)
+      {
+        printf("fuck\n");
+        exit(-1);
+      }
+
       if (strstr(receiveBuffer, "\r\n\r\n") != NULL)
         break;
       receiveBufferPtr++;
