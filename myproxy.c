@@ -74,7 +74,8 @@ void getTimeStringfromRawTime(char* timeString, time_t rawtime)
  */
 struct requestAttributes parseRequestMessage(char* requestMessage)
 {
-  struct requestAttributes messageAttributes;
+  struct requestAttributes messageAttributes
+  = {0, 0, 0, "", "", "", 0, 0, 0};
 
   printRequestAttributes(&messageAttributes);
 
