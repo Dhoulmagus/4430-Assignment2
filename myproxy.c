@@ -652,7 +652,7 @@ int main(int argc, char** argv)
     struct requestAttributes clientRequestAttributes = parseRequestMessage(clientRequest);
 
     // If server_sd can be reused, reuse it
-    // Else, stablish a connection to server
+    // Else, establish a connection to server
     if (server_sd_reusable)
       printf("Server sd is reusable. Reuse server_sd: /%s%d%s/ now. \n", BG_PURPLE, server_sd, DEFAULT);
     else
@@ -663,7 +663,6 @@ int main(int argc, char** argv)
     strcpy(buf, clientRequest);
 
     //debug
-    // printf("%sok here?1%s\n", FG_RED, DEFAULT);
     printRequestAttributes(&clientRequestAttributes);
 
     // If the method is not GET, simply ignore it
@@ -832,7 +831,7 @@ int main(int argc, char** argv)
     while(1)
     {
       bytesReceived = recv(server_sd, receiveBufferPtr, 1, 0);
-      printf("byteReceived is now: /%s%d%s/\n", BG_PURPLE, bytesReceived, DEFAULT);
+      printf("%sReceived one byte%s ", BG_PURPLE, DEFAULT);
       if (bytesReceived < 0)
       {
         printf("%sreceive HTTP response error%s\n", BG_RED, DEFAULT);
@@ -854,7 +853,7 @@ int main(int argc, char** argv)
     *receiveBufferPtr = '\0';
 
     //debug
-    printf("%s=== server's response's header ===%s\n", BG_YELLOW, DEFAULT);
+    printf("\n%s=== server's response's header ===%s\n", BG_YELLOW, DEFAULT);
     printf("/%s%s%s/\n", BG_BLUE, receiveBuffer, DEFAULT);
     printf("%s=== End of server's response's header ===%s\n", BG_YELLOW, DEFAULT);
 
@@ -938,6 +937,7 @@ int main(int argc, char** argv)
 
     if (serverResponseAttributes.serverClose)
     {
+      printf("%sThe server's response has Connection: close. Close server_sd now. %s\n", BG_PURPLE, DEFAULT);
       server_sd_reusable = 0;
       close(server_sd);
     }
@@ -950,7 +950,7 @@ int main(int argc, char** argv)
     if (clientRequestAttributes.clientClose)
       break;
 
-    printf("ok here 4?\n");
+    printf("%sOne Loop(c->p->s->p->c) is done.%s\n", BG_PURPLE, DEFAULT);
 
   }
   close(server_sd);
