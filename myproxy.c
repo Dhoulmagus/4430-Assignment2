@@ -952,7 +952,7 @@ int main(int argc, char** argv)
     // Here call recv() once to test if server closed the connection at its side
     // if server did, close the server_sd
     char testByte;
-    bytesReceived = recv(server_sd, &testByte, 1, 0);
+    bytesReceived = recv(server_sd, &testByte, 1, MSG_PEEK | MSG_DONTWAIT);
     if (bytesReceived == 0)
     {
       printf("%sThe server silently closed the Connection. Close server_sd now. %s\n", BG_PURPLE, DEFAULT);
