@@ -489,14 +489,17 @@ int cacheServerResponse(char* responseHeader, char* URL, int server_sd, int has_
     {
       memset(block, 0, sizeof(block));
       int readSize = read(server_sd, block, sizeof(block));
+
+      //debug
       printf("readSize is now: /%s%d%s/\n", BG_YELLOW, readSize, DEFAULT);
+
       if (readSize < 0) // read error?
         return -1;
       if (readSize == 0) // has read up the response body
         break;
 
       //debug
-      printf("block is now: /%s%s%s/\n", BG_BLUE, block, DEFAULT);
+      //printf("block is now: /%s%s%s/\n", BG_BLUE, block, DEFAULT);
 
       // Write the body block to both cache and temp
       fwrite(block, 1, readSize, fp);
@@ -838,17 +841,18 @@ int main(int argc, char** argv)
       }
 
       //debug
-      if (bytesReceived == 0)
+      else if (bytesReceived == 0)
       {
-        printf("fuck ");
-        exit(-1);
+        continue;
       }
+      else
+      {
+        printf("%sReceived one byte%s ", BG_PURPLE, DEFAULT);
 
-      printf("%sReceived one byte%s ", BG_PURPLE, DEFAULT);
-
-      if (strstr(receiveBuffer, "\r\n\r\n") != NULL)
-        break;
-      receiveBufferPtr++;
+        if (strstr(receiveBuffer, "\r\n\r\n") != NULL)
+          break;
+        receiveBufferPtr++;
+      }
     }
     receiveBufferPtr++;
     *receiveBufferPtr = '\0';
