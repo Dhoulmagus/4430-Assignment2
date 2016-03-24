@@ -320,6 +320,7 @@ int respondCache(char* URL, int client_sd)
   char block[512];
 
   FILE* fp = fopen(filepath, "rb");
+  if (fp == NULL) return -1;
   int readSize = 0;
   do {
     memset(block, 0, sizeof(block));
