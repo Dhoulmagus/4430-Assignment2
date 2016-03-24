@@ -947,7 +947,10 @@ int main(int argc, char** argv)
       close(server_sd);
     }
 
-    // call recv() once to test if server closed the connection
+    // This part is a workaround for the mysterious phenomenon
+    // that the server_sd, after a c->p->s->p->c loop, cannot be reused
+    // Here call recv() once to test if server closed the connection at its side
+    // if server did, close the server_sd
     char testByte;
     bytesReceived = recv(server_sd, &testByte, 1, 0);
     if (bytesReceived == 0)
