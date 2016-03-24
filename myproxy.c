@@ -357,6 +357,17 @@ struct responseAttributes
   int isGzip;
 };
 
+void printResponseAttributes(struct responseAttributes* a)
+{
+  printf("=== response Attributes ===\n");
+  printf("statusCode is %s%d%s\n", BG_BLUE, a->statusCode, DEFAULT);
+  printf("contentLength is %s%d%s\n", BG_BLUE, a->contentLength, DEFAULT);
+  printf("isChunked is %s%d%s\n", BG_BLUE, a->isChunked, DEFAULT);
+  printf("serverClose is %s%d%s\n", BG_BLUE, a->serverClose, DEFAULT);
+  printf("isGzip is %s%d%s\n", BG_BLUE, a->isGzip, DEFAULT);
+  printf("=== End of response Attributes ===\n");
+}
+
 struct responseAttributes parseResponseHeader(char* responseHeader)
 {
   struct responseAttributes headerAttributes
@@ -828,6 +839,9 @@ int main(int argc, char** argv)
 
     // parse server's response's header
     struct responseAttributes serverResponseAttributes = parseResponseHeader(receiveBuffer);
+
+    printResponseAttributes(&serverResponseAttributes);
+
 
     int response_has_no_body = 0;
     if (serverResponseAttributes.contentLength == 0 && serverResponseAttributes.isChunked == 0)
