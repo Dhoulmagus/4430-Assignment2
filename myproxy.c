@@ -623,6 +623,9 @@ int main(int argc, char** argv)
     char buf[MAX_REQUEST_SIZE];
     strcpy(buf, clientRequest);
 
+    //debug
+    printf("%sok here?1%s\n", FG_RED, DEFAULT);
+
     // If the method is not GET, simply ignore it
     if (clientRequestAttributes.methodNotGET)
       continue;
@@ -640,8 +643,7 @@ int main(int argc, char** argv)
     }
     else
     {
-      //debug
-      printf("%sok here?1%s\n", FG_RED, DEFAULT);
+
 
       // If the file is not cached in MYPROXY,
       // simply forwards it to the web server
