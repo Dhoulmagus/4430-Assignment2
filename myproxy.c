@@ -831,7 +831,6 @@ int main(int argc, char** argv)
     while(1)
     {
       bytesReceived = recv(server_sd, receiveBufferPtr, 1, 0);
-      printf("%sReceived one byte%s ", BG_PURPLE, DEFAULT);
       if (bytesReceived < 0)
       {
         printf("%sreceive HTTP response error%s\n", BG_RED, DEFAULT);
@@ -842,7 +841,10 @@ int main(int argc, char** argv)
       if (bytesReceived == 0)
       {
         printf("fuck ");
+        exit(-1);
       }
+
+      printf("%sReceived one byte%s ", BG_PURPLE, DEFAULT);
 
       if (strstr(receiveBuffer, "\r\n\r\n") != NULL)
         break;
