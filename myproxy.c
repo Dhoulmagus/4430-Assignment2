@@ -830,6 +830,7 @@ int main(int argc, char** argv)
     while(1)
     {
       bytesReceived = read(server_sd, receiveBufferPtr, 1);
+      printf("byteReceived is now: /%s%d%s/\n", BG_PURPLE, bytesReceived, DEFAULT);
       if (bytesReceived < 0)
       {
         printf("%sreceive HTTP response error%s\n", BG_RED, DEFAULT);
