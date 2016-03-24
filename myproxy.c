@@ -499,8 +499,8 @@ int cacheServerResponse(char* responseHeader, char* URL, int server_sd, int has_
       printf("block is now: /%s%s%s/\n", BG_BLUE, block, DEFAULT);
 
       // Write the body block to both cache and temp
-      fwrite(block, 1, strlen(block), fp);
-      fwrite(block, 1, strlen(block), temp);
+      fwrite(block, 1, readSize, fp);
+      fwrite(block, 1, readSize, temp);
 
       totalSize += readSize;
     }
@@ -541,7 +541,7 @@ int temporarilyStoreServerResponse(char* responseHeader, int server_sd, int has_
         break;
 
       // Write the body block to temp
-      fwrite(block, 1, strlen(block), temp);
+      fwrite(block, 1, readSize, temp);
 
       totalSize += readSize;
     }
