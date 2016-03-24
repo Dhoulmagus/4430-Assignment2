@@ -489,6 +489,7 @@ int cacheServerResponse(char* responseHeader, char* URL, int server_sd, int has_
     {
       memset(block, 0, sizeof(block));
       int readSize = read(server_sd, block, sizeof(block));
+      printf("readSize is now: /%s%d%s/\n", BG_YELLOW, readSize, DEFAULT);
       if (readSize < 0) // read error?
         return -1;
       if (readSize == 0) // has read up the response body
@@ -907,6 +908,8 @@ int main(int argc, char** argv)
       }
     }
 
+    printf("ok here 3\n");
+
     // Now forward the response back to client
     if (respondTempFile(client_sd) == -1)
     {
@@ -929,6 +932,8 @@ int main(int argc, char** argv)
 
     if (clientRequestAttributes.clientClose)
       break;
+
+    printf("ok here 4?\n");
 
   }
   close(server_sd);
