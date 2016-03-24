@@ -33,6 +33,22 @@ struct requestAttributes
   int noCache;
 };
 
+void printRequestAttributes(struct requestAttributes* a)
+{
+  printf("=== request Attributes ===\n");
+  printf("methodNotGET is %s%d%s\n", BG_BLUE, a->methodNotGET, DEFAULT);
+  printf("typeNeedsCaching is %s%d%s\n", BG_BLUE, a->typeNeedsCaching, DEFAULT);
+  printf("port is %s%d%s\n", BG_BLUE, a->port, DEFAULT);
+  printf("extension is %s%s%s\n", BG_BLUE, a->extension, DEFAULT);
+  printf("Host is %s%s%s\n", BG_BLUE, a->Host, DEFAULT);
+  printf("URL is %s%s%s\n", BG_BLUE, a->URL, DEFAULT);
+  printf("clientClose is %s%d%s\n", BG_BLUE, a->clientClose, DEFAULT);
+  printf("IMS is %s%ld%s\n", BG_BLUE, a->IMS, DEFAULT);
+  printf("noCache is %s%d%s\n", BG_BLUE, a->noCache, DEFAULT);
+  printf("=== End of request Attributes ===\n");
+}
+
+
 /**Input a time string, say, "Mon, 21 Oct 2002 12:30:20 GMT"
  * Then this function will return a raw long time
  */
@@ -59,6 +75,9 @@ void getTimeStringfromRawTime(char* timeString, time_t rawtime)
 struct requestAttributes parseRequestMessage(char* requestMessage)
 {
   struct requestAttributes messageAttributes;
+
+  printRequestAttributes(&messageAttributes);
+
 
   // Get ready to strtok
   char requestMessageCopy[8192];
@@ -190,6 +209,7 @@ struct requestAttributes parseRequestMessage(char* requestMessage)
 
   free(tofree1);
   free(tofree2);
+  printRequestAttributes(&messageAttributes);
   return messageAttributes;
 }
 
@@ -516,20 +536,7 @@ int temporarilyStoreServerResponse(char* responseHeader, int server_sd, int has_
   return 0;
 }
 
-void printRequestAttributes(struct requestAttributes* a)
-{
-  printf("=== request Attributes ===\n");
-  printf("methodNotGET is %s%d%s\n", BG_BLUE, a->methodNotGET, DEFAULT);
-  printf("typeNeedsCaching is %s%d%s\n", BG_BLUE, a->typeNeedsCaching, DEFAULT);
-  printf("port is %s%d%s\n", BG_BLUE, a->port, DEFAULT);
-  printf("extension is %s%s%s\n", BG_BLUE, a->extension, DEFAULT);
-  printf("Host is %s%s%s\n", BG_BLUE, a->Host, DEFAULT);
-  printf("URL is %s%s%s\n", BG_BLUE, a->URL, DEFAULT);
-  printf("clientClose is %s%d%s\n", BG_BLUE, a->clientClose, DEFAULT);
-  printf("IMS is %s%ld%s\n", BG_BLUE, a->IMS, DEFAULT);
-  printf("noCache is %s%d%s\n", BG_BLUE, a->noCache, DEFAULT);
-  printf("=== End of request Attributes ===\n");
-}
+
 
 
 int main(int argc, char** argv)
