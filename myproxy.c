@@ -640,6 +640,9 @@ int main(int argc, char** argv)
     }
     else
     {
+      //debug
+      printf("%sok here?1%s\n", FG_RED, DEFAULT);
+
       // If the file is not cached in MYPROXY,
       // simply forwards it to the web server
       if (getFileModificationTime(clientRequestAttributes.URL) == -1)
