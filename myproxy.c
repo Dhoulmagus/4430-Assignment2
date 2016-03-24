@@ -823,6 +823,9 @@ int main(int argc, char** argv)
     char receiveBuffer[MAX_RESPONSE_SIZE];
     memset(receiveBuffer, 0, sizeof(receiveBuffer));
     char* receiveBufferPtr = receiveBuffer;
+
+    printf("%sWaiting for the server's response...%s\n", BG_PURPLE, DEFAULT);
+
     // Receive byte by byte until an \r\n\r\n is found
     while(1)
     {
