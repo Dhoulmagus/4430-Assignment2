@@ -235,7 +235,7 @@ int connectToServer(char* Hostname, int port)
   printf("connectToServer: ip is now: /%s/\n", inet_ntoa(*address));
 
   // Create socket
-  int server_sd = socket(AF_INET,SOCK_STREAM,IPPROTO_TCP);
+  int server_sd = socket(AF_INET,SOCK_STREAM,0);
   long serverVal = 1;
   if (setsockopt(server_sd, SOL_SOCKET, SO_REUSEADDR, &serverVal, sizeof(long)) == -1)
   {
@@ -831,7 +831,7 @@ int main(int argc, char** argv)
     // Receive byte by byte until an \r\n\r\n is found
     while(1)
     {
-      bytesReceived = read(server_sd, receiveBufferPtr, 1);
+      bytesReceived = recv(server_sd, receiveBufferPtr, 1, 0);
       printf("byteReceived is now: /%s%d%s/\n", BG_PURPLE, bytesReceived, DEFAULT);
       if (bytesReceived < 0)
       {
