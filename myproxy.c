@@ -34,7 +34,7 @@ struct requestAttributes
   int port;
   char extension[10];
   char Host[100];
-  char URL[200];
+  char URL[900];
   int clientClose;
   time_t IMS;
   int noCache;
