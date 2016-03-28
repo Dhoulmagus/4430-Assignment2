@@ -163,8 +163,8 @@ struct requestAttributes parseRequestMessage(char* requestMessage)
   strcpy(messageAttributes.extension, extension);
   //debug
   //printf("extension is: %s%s%s\n", BG_YELLOW, messageAttributes.extension, DEFAULT);
-  if (strcmp(extension, "html") == 0 || strcmp(extension, "jpg") == 0 || strcmp(extension, "gif") == 0 ||
-      strcmp(extension, "txt")  == 0 || strcmp(extension, "pdf") == 0)
+  if (strcasecmp(extension, "html") == 0 || strcasecmp(extension, "jpg") == 0 || strcasecmp(extension, "gif") == 0 ||
+      strcasecmp(extension, "txt")  == 0 || strcasecmp(extension, "pdf") == 0)
       messageAttributes.typeNeedsCaching = 1;
 
   // Here processing the Request Line is done.
@@ -321,14 +321,20 @@ int respondCache(char* URL, int client_sd)
 
   FILE* fp = fopen(filepath, "rb");
   if (fp == NULL) return -1;
+
   int readSize = 0;
+  int totalSize = 0;
   do {
     memset(block, 0, sizeof(block));
     readSize = fread(block, 1, 512, fp);
     if (readSize > 0)
       if (send(client_sd, block, readSize, MSG_NOSIGNAL) <= 0)
         return -1;
+    totalSize+=readSize;
   } while(readSize > 0);
+  printf("%srespondCache(): Totally respond %d bytes back to client. %s\n", BG_GREEN, totalSize, DEFAULT);
+
+
   fclose(fp);
   return 0;
 }
@@ -340,14 +346,19 @@ int respondTempFile(int client_sd)
 {
   char block[512];
   FILE* fp = fopen("./cache/temp", "rb");
+
   int readSize = 0;
+  int totalSize = 0;
   do {
     memset(block, 0, sizeof(block));
     readSize = fread(block, 1, sizeof(block), fp);
     if (readSize > 0)
       if (send(client_sd, block, readSize, MSG_NOSIGNAL) <= 0)
         return -1;
+    totalSize+=readSize;
   } while (readSize > 0);
+  printf("%srespondTempFile(): Totally respond %d bytes back to client. %s\n", BG_GREEN, totalSize, DEFAULT);
+
   fclose(fp);
   return 0;
 }
@@ -460,9 +471,10 @@ struct responseAttributes parseResponseHeader(char* responseHeader)
   return headerAttributes;
 }
 
-/** Store the whole server response to both cache and a temp file
+/** Simutaneously cache the whole server response
+ *  and forward the response back to the client
  */
-int cacheServerResponse(char* responseHeader, char* URL, int server_sd, int has_no_body)
+int cacheServerResponse(char* responseHeader, char* URL, int server_sd, int client_sd, int has_no_body)
 {
   char responseHeaderCopy[MAX_RESPONSE_SIZE];
   strcpy(responseHeaderCopy, responseHeader);
@@ -475,19 +487,22 @@ int cacheServerResponse(char* responseHeader, char* URL, int server_sd, int has_
   strcpy(filepath, cachePath);
   strcat(filepath, filename);
 
-  // First write the header part of the response to both cache file and temp file
+  // First write the header part of the response to cache file
   FILE* fp = fopen(filepath, "wb");
-  FILE* temp = fopen("./cache/temp", "wb");
   int byteWritten = fwrite(responseHeaderCopy, 1, strlen(responseHeaderCopy), fp);
-  byteWritten = fwrite(responseHeaderCopy, 1, strlen(responseHeaderCopy), temp);
   if (byteWritten == 0)
     return -1; // fwrite error?
 
-  // Then if the response has body, continue to write the body part to file
+  // Then forward the header part to client
+  if (send(client_sd, responseHeaderCopy, strlen(responseHeaderCopy), MSG_NOSIGNAL) <= 0)
+    return -1;
+  int totalSize = strlen(responseHeaderCopy);
+
+  // Then if the response has body, continue to write the body part to cache
+  // And forward it back to client at the same time
   if (!has_no_body)
   {
     char block[1024];
-    int totalSize = 0;
     // Read body from server block by block
     while(1)
     {
@@ -495,69 +510,110 @@ int cacheServerResponse(char* responseHeader, char* URL, int server_sd, int has_
       int readSize = read(server_sd, block, sizeof(block));
 
       //debug
-      printf("readSize is now: /%s%d%s/\n", BG_YELLOW, readSize, DEFAULT);
+      printf("cacheServerResponse(): readSize is now: /%s%d%s/\n", BG_YELLOW, readSize, DEFAULT);
 
       if (readSize < 0) // read error?
         return -1;
       if (readSize == 0) // has read up the response body
         break;
 
-      //debug
-      //printf("block is now: /%s%s%s/\n", BG_BLUE, block, DEFAULT);
-
-      // Write the body block to both cache and temp
+      // Write the body block to cache
       fwrite(block, 1, readSize, fp);
-      fwrite(block, 1, readSize, temp);
+
+      // Send the body block back to client
+      if (send(client_sd, block, readSize, MSG_NOSIGNAL) <= 0)
+        return -1;
 
       totalSize += readSize;
     }
-
-    printf("%scacheServerResponse(): received %d bytes of body in total%s\n", BG_PURPLE, totalSize, DEFAULT);
   }
 
-  fclose(temp);
+  printf("%scacheServerResponse(): Cached and forwarded %d bytes in total%s\n", BG_PURPLE, totalSize, DEFAULT);
+
   fclose(fp);
   return 0;
 }
 
-/** Store the whole server response to only a temp file
- */
-int temporarilyStoreServerResponse(char* responseHeader, int server_sd, int has_no_body)
+int forwardServerResponse(char* responseHeader, int server_sd, int client_sd, int has_no_body)
 {
   char responseHeaderCopy[MAX_RESPONSE_SIZE];
   strcpy(responseHeaderCopy, responseHeader);
 
-  FILE* temp = fopen("./cache/temp", "wb");
-  int byteWritten = fwrite(responseHeaderCopy, 1, strlen(responseHeaderCopy), temp);
-  if (byteWritten == 0)
+  // First forward the header part to client
+  if (send(client_sd, responseHeaderCopy, strlen(responseHeaderCopy), MSG_NOSIGNAL) <= 0)
     return -1;
+  int totalSize = strlen(responseHeaderCopy);
 
-
+  // Then forward the body part
   if (!has_no_body)
   {
     char block[1024];
-    int totalSize = 0;
     // Read body from server block by block
     while(1)
     {
       memset(block, 0, sizeof(block));
       int readSize = read(server_sd, block, sizeof(block));
+
+      //debug
+      printf("forwardServerResponse(): readSize is now: /%s%d%s/\n", BG_YELLOW, readSize, DEFAULT);
+
       if (readSize < 0) // read error?
         return -1;
       if (readSize == 0) // has read up the response body
         break;
 
-      // Write the body block to temp
-      fwrite(block, 1, readSize, temp);
+      // Send the body block back to client
+      if (send(client_sd, block, readSize, MSG_NOSIGNAL) <= 0)
+        return -1;
 
       totalSize += readSize;
     }
-
-    printf("%stemporarilyStoreServerResponse(): received %d bytes of body in total%s\n", BG_PURPLE, totalSize, DEFAULT);
   }
-  fclose(temp);
+
+  printf("%sforwardServerResponse(): Cached and forwarded %d bytes in total%s\n", BG_PURPLE, totalSize, DEFAULT);
+
   return 0;
 }
+
+
+// /** Store the whole server response to only a temp file
+//  */
+// int temporarilyStoreServerResponse(char* responseHeader, int server_sd, int has_no_body)
+// {
+//   char responseHeaderCopy[MAX_RESPONSE_SIZE];
+//   strcpy(responseHeaderCopy, responseHeader);
+//
+//   FILE* temp = fopen("./cache/temp", "wb");
+//   int byteWritten = fwrite(responseHeaderCopy, 1, strlen(responseHeaderCopy), temp);
+//   if (byteWritten == 0)
+//     return -1;
+//
+//
+//   if (!has_no_body)
+//   {
+//     char block[1024];
+//     int totalSize = 0;
+//     // Read body from server block by block
+//     while(1)
+//     {
+//       memset(block, 0, sizeof(block));
+//       int readSize = read(server_sd, block, sizeof(block));
+//       if (readSize < 0) // read error?
+//         return -1;
+//       if (readSize == 0) // has read up the response body
+//         break;
+//
+//       // Write the body block to temp
+//       fwrite(block, 1, readSize, temp);
+//
+//       totalSize += readSize;
+//     }
+//
+//     printf("%stemporarilyStoreServerResponse(): received %d bytes of body in total%s\n", BG_PURPLE, totalSize, DEFAULT);
+//   }
+//   fclose(temp);
+//   return 0;
+// }
 
 
 
@@ -880,10 +936,10 @@ int main(int argc, char** argv)
     // 200 case
     if (serverResponseAttributes.statusCode == 200)
     {
-      // If the file type needs cacheing, then cache it
+      // If the file type needs caching, then cache it
       if (clientRequestAttributes.typeNeedsCaching)
       {
-        if (cacheServerResponse(receiveBuffer, clientRequestAttributes.URL, server_sd, response_has_no_body) == -1)
+        if (cacheServerResponse(receiveBuffer, clientRequestAttributes.URL, server_sd, client_sd, response_has_no_body) == -1)
         {
           printf("%scache Error%s\n", BG_RED, DEFAULT);
           break;
@@ -892,9 +948,9 @@ int main(int argc, char** argv)
       // Else, simply store the response
       else
       {
-        if (temporarilyStoreServerResponse(receiveBuffer, server_sd, response_has_no_body) == -1)
+        if (forwardServerResponse(receiveBuffer, server_sd, client_sd, response_has_no_body) == -1)
         {
-          printf("%sstore Error%s\n", BG_RED, DEFAULT);
+          printf("%sforward Error%s\n", BG_RED, DEFAULT);
           break;
         }
       }
@@ -911,15 +967,13 @@ int main(int argc, char** argv)
           printf("%srespond Error%s\n", BG_RED, DEFAULT);
           break;
         }
-
-
         goto forwardBackComplete;
       }
       else
       {
-        if (temporarilyStoreServerResponse(receiveBuffer, server_sd, response_has_no_body) == -1)
+        if (forwardServerResponse(receiveBuffer, server_sd, client_sd, response_has_no_body) == -1)
         {
-          printf("%sstore Error%s\n", BG_RED, DEFAULT);
+          printf("%sforward Error%s\n", BG_RED, DEFAULT);
           break;
         }
       }
@@ -927,18 +981,11 @@ int main(int argc, char** argv)
     // Status code is otherwise case
     else
     {
-      if (temporarilyStoreServerResponse(receiveBuffer, server_sd, response_has_no_body) == -1)
+        if (forwardServerResponse(receiveBuffer, server_sd, client_sd, response_has_no_body) == -1)
       {
-        printf("%sstore Error%s\n", BG_RED, DEFAULT);
+        printf("%sforward Error%s\n", BG_RED, DEFAULT);
         break;
       }
-    }
-
-    // Now forward the response back to client
-    if (respondTempFile(client_sd) == -1)
-    {
-      printf("%sclient closed the connection%s\n", BG_RED, DEFAULT);
-      break;
     }
 
     forwardBackComplete:
