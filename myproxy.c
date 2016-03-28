@@ -159,6 +159,7 @@ struct requestAttributes parseRequestMessage(char* requestMessage)
   else
   {
     char fileNameCopy[900];
+    memset(fileNameCopy, 0, sizeof(fileNameCopy));
     strcpy(fileNameCopy, fileName);
 
     // If the filename string contains queryString, remove it
@@ -166,8 +167,17 @@ struct requestAttributes parseRequestMessage(char* requestMessage)
     if (questionMarkPtr != NULL)
     {
       *questionMarkPtr = '\0';
+      char temp[900];
+      memset(temp, 0, sizeof(temp));
+      strcpy(temp, fileNameCopy);
+      memset(fileNameCopy, 0, sizeof(fileNameCopy));
+      strcpy(fileNameCopy, temp);
+
       printf("%sparseRequestMessage(): Found query string and removed it. %s\n", BG_GREEN, DEFAULT);
     }
+
+    //debug
+    printf("parseRequestMessage(): fileNameCopy is now: /%s%s%s/\n", BG_PURPLE, fileNameCopy, DEFAULT);
 
     wordToken = strtok_r(fileNameCopy, ".", &wordSavePtr);
     while ((wordToken = strtok_r(NULL, ".", &wordSavePtr)) != NULL)
