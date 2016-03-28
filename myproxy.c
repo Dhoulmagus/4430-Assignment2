@@ -239,7 +239,9 @@ struct requestAttributes parseRequestMessage(char* requestMessage)
 
   printf("%sFUCK%s\n", BG_RED, DEFAULT);
   free(tofree1);
+  printf("%sFUCK2%s\n", BG_RED, DEFAULT);
   free(tofree2);
+  printf("%sFUCK3%s\n", BG_RED, DEFAULT);
   return messageAttributes;
 }
 
