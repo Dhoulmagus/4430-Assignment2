@@ -91,8 +91,8 @@ struct requestAttributes parseRequestMessage(char* requestMessage)
   // Get ready to strtok
   char requestMessageCopy[MAX_REQUEST_SIZE];
   strcpy(requestMessageCopy, requestMessage);
-  char* lineSavePtr = malloc(200);
-  char* wordSavePtr = malloc(100);
+  char* lineSavePtr = malloc(1000);
+  char* wordSavePtr = malloc(1000);
   char* tofree1 = lineSavePtr;
   char* tofree2 = wordSavePtr;
   char* lineToken;
@@ -148,7 +148,7 @@ struct requestAttributes parseRequestMessage(char* requestMessage)
     memset(fileName, 0, sizeof(fileName));
     strcpy(fileName, wordToken);
   }
-  printf("fileName is: %s%s%s\n", BG_YELLOW, fileName, DEFAULT);
+  //printf("fileName is: %s%s%s\n", BG_YELLOW, fileName, DEFAULT);
 
   // Parse the file name to get the extension
   char extension[100];
