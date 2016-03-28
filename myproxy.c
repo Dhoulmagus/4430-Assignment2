@@ -786,6 +786,7 @@ void* workerThread(void* args)
             sprintf(block, "HTTP/1.1 304 Not Modified\r\n\r\n");
             if (send(client_sd, block, strlen(block), MSG_NOSIGNAL) <= 0)
               break;
+            server_response_has_no_body = 1;
           }
           else
             if (respondCache(clientRequestAttributes.URL, client_sd) == -1)
@@ -905,9 +906,8 @@ void* workerThread(void* args)
     printResponseAttributes(&serverResponseAttributes);
 
 
-    int response_has_no_body = 0;
     if (serverResponseAttributes.contentLength == 0 && serverResponseAttributes.isChunked == 0)
-    response_has_no_body = 1;
+      server_response_has_no_body = 1;
 
     // 200 case
     if (serverResponseAttributes.statusCode == 200)
@@ -915,16 +915,16 @@ void* workerThread(void* args)
       // If the file type needs caching, then cache it
       if (clientRequestAttributes.typeNeedsCaching)
       {
-        if (cacheServerResponse(receiveBuffer, clientRequestAttributes.URL, server_sd, client_sd, response_has_no_body) == -1)
+        if (cacheServerResponse(receiveBuffer, clientRequestAttributes.URL, server_sd, client_sd, server_response_has_no_body) == -1)
         {
           printf("%scache Error%s\n", BG_RED, DEFAULT);
           break;
         }
       }
-      // Else, simply store the response
+      // Else, simply forward the response
       else
       {
-        if (forwardServerResponse(receiveBuffer, server_sd, client_sd, response_has_no_body) == -1)
+        if (forwardServerResponse(receiveBuffer, server_sd, client_sd, server_response_has_no_body) == -1)
         {
           printf("%sforward Error%s\n", BG_RED, DEFAULT);
           break;
@@ -947,7 +947,7 @@ void* workerThread(void* args)
       }
       else
       {
-        if (forwardServerResponse(receiveBuffer, server_sd, client_sd, response_has_no_body) == -1)
+        if (forwardServerResponse(receiveBuffer, server_sd, client_sd, server_response_has_no_body) == -1)
         {
           printf("%sforward Error%s\n", BG_RED, DEFAULT);
           break;
@@ -957,7 +957,7 @@ void* workerThread(void* args)
     // Status code is otherwise case
     else
     {
-      if (forwardServerResponse(receiveBuffer, server_sd, client_sd, response_has_no_body) == -1)
+      if (forwardServerResponse(receiveBuffer, server_sd, client_sd, server_response_has_no_body) == -1)
       {
         printf("%sforward Error%s\n", BG_RED, DEFAULT);
         break;
@@ -989,10 +989,10 @@ void* workerThread(void* args)
     }
 
     if (server_response_has_no_body)
-    break;
+      break;
 
     if (clientRequestAttributes.clientClose)
-    break;
+      break;
 
     printf("%sOne Loop(c->p->s->p->c) is done.%s\n", BG_PURPLE, DEFAULT);
 
