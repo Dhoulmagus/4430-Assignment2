@@ -19,6 +19,13 @@
 #define MAX_REQUEST_SIZE 8192
 #define MAX_RESPONSE_SIZE 8192
 #define cachePath "./cache/"
+pthread_mutex_t mutex;
+
+// struct threadArgs
+// {
+//   int client_sd;
+//   int tid;
+// }__attribute__ ((packed));
 
 struct requestAttributes
 {
@@ -616,66 +623,13 @@ int forwardServerResponse(char* responseHeader, int server_sd, int client_sd, in
 // }
 
 
-
-
-int main(int argc, char** argv)
+void* workerThread(void* args)
 {
-  // Check if argument count is 2
-  if (argc != 2)
-  {
-    printf("%sUsage: ./myproxy <Port>%s\n", BG_RED, DEFAULT);
-    exit(-1);
-  }
-  //TO-DO: Check if it is a valid port number
-  int PORT = atoi(argv[1]);
+  int client_sd = *((int*)args);
+  int tid = pthread_self();
 
   //debug
-  //printf("%smain(): PORT is now: %d%s\n", BG_YELLOW, PORT, DEFAULT);
-
-  // Create listening socket
-  int sd = socket(AF_INET, SOCK_STREAM, 0);
-  // Make port reusable
-  long val = 1;
-  if (setsockopt(sd, SOL_SOCKET, SO_REUSEADDR, &val, sizeof(long)) == -1)
-  {
-    perror("setsockopt");
-    exit(-1);
-  }
-
-  struct sockaddr_in server_addr;
-  memset(&server_addr,0,sizeof(server_addr));
-  server_addr.sin_family=AF_INET;
-  server_addr.sin_addr.s_addr=htonl(INADDR_ANY);
-  server_addr.sin_port=htons(PORT);
-
-  // Bind socket
-  if(bind(sd,(struct sockaddr *) &server_addr,sizeof(server_addr))<0)
-  {
-    printf("bind error: %s (Errno:%d)\n",strerror(errno),errno);
-    exit(-1);
-  }
-
-  // Listen socket
-  if(listen(sd,3)<0)
-  {
-    printf("listen error: %s (Errno:%d)\n",strerror(errno),errno);
-    exit(-1);
-  }
-
-  printf("%sWaiting for Incoming connections...%s\n", BG_PURPLE, DEFAULT);
-
-  // Accept connection
-  struct sockaddr_in client_addr;
-  unsigned int addr_len = sizeof(client_addr);
-  int client_sd;
-  if ((client_sd=accept(sd, (struct sockaddr *)&client_addr, &addr_len))<0)
-  {
-    printf("%sAccept error%s\n", BG_RED, DEFAULT);
-    exit(-1);
-  }
-
-  //debug
-  printf("%sAccepted client_sd: %d, IP: %s%s\n", BG_GREEN, client_sd, inet_ntoa(client_addr.sin_addr), DEFAULT);
+  printf("%sAccepted client_sd: %d, tid: %d%s\n", BG_GREEN, client_sd, tid, DEFAULT);
 
   // Flags for the loop
   int server_sd;
@@ -696,15 +650,14 @@ int main(int argc, char** argv)
     strcpy(clientRequest, "");
     int bytesReceived = recv(client_sd, clientRequest, sizeof(clientRequest), 0);
     if(bytesReceived < 0)
-		{
-			printf("%sreceive error: %s (Errno:%d)%s\n",BG_RED, strerror(errno), errno, DEFAULT);
-			exit(-1);
-		}
+    {
+      printf("%sreceive error: %s (Errno:%d)%s\n",BG_RED, strerror(errno), errno, DEFAULT);
+      pthread_exit(0);
+    }
     else if (bytesReceived == 0)
     {
-      continue;
-      // printf("%sClient closed the connection. %s\n", BG_RED, DEFAULT);
-      // exit(0);
+      printf("%sClient closed the connection. %s\n", BG_RED, DEFAULT);
+      pthread_exit(0);
     }
 
     //debug
@@ -718,9 +671,9 @@ int main(int argc, char** argv)
     // If server_sd can be reused, reuse it
     // Else, establish a connection to server
     if (server_sd_reusable)
-      printf("Server sd is reusable. Reuse server_sd: /%s%d%s/ now. \n", BG_PURPLE, server_sd, DEFAULT);
+    printf("Server sd is reusable. Reuse server_sd: /%s%d%s/ now. \n", BG_PURPLE, server_sd, DEFAULT);
     else
-      server_sd = connectToServer(clientRequestAttributes.Host, clientRequestAttributes.port);
+    server_sd = connectToServer(clientRequestAttributes.Host, clientRequestAttributes.port);
     server_sd_reusable = 1;
 
     char buf[MAX_REQUEST_SIZE];
@@ -772,16 +725,16 @@ int main(int argc, char** argv)
         if (clientRequestAttributes.noCache)
         {
           if (clientRequestAttributes.IMS == 0)
-            caseNumber = 3;
+          caseNumber = 3;
           else
-            caseNumber = 4;
+          caseNumber = 4;
         }
         else
         {
           if (clientRequestAttributes.IMS == 0)
-            caseNumber = 1;
+          caseNumber = 1;
           else
-            caseNumber = 2;
+          caseNumber = 2;
         }
 
         //debug
@@ -794,7 +747,7 @@ int main(int argc, char** argv)
           // Case 1:
           // Proxy directly respond the client with the cache
           if (respondCache(clientRequestAttributes.URL, client_sd) == -1)
-            break;
+          break;
 
           goto oneLoopisDone;
         }
@@ -810,11 +763,11 @@ int main(int argc, char** argv)
             char block[512];
             sprintf(block, "HTTP/1.1 304 Not Modified\r\n\r\n");
             if (send(client_sd, block, strlen(block), MSG_NOSIGNAL) <= 0)
-              break;
+            break;
           }
           else
-            if (respondCache(clientRequestAttributes.URL, client_sd) == -1)
-              break;
+          if (respondCache(clientRequestAttributes.URL, client_sd) == -1)
+          break;
 
           goto oneLoopisDone;
         }
@@ -912,7 +865,7 @@ int main(int argc, char** argv)
         //printf("%sReceived one byte%s ", BG_PURPLE, DEFAULT);
 
         if (strstr(receiveBuffer, "\r\n\r\n") != NULL)
-          break;
+        break;
         receiveBufferPtr++;
       }
     }
@@ -932,7 +885,7 @@ int main(int argc, char** argv)
 
     int response_has_no_body = 0;
     if (serverResponseAttributes.contentLength == 0 && serverResponseAttributes.isChunked == 0)
-      response_has_no_body = 1;
+    response_has_no_body = 1;
 
     // 200 case
     if (serverResponseAttributes.statusCode == 200)
@@ -982,7 +935,7 @@ int main(int argc, char** argv)
     // Status code is otherwise case
     else
     {
-        if (forwardServerResponse(receiveBuffer, server_sd, client_sd, response_has_no_body) == -1)
+      if (forwardServerResponse(receiveBuffer, server_sd, client_sd, response_has_no_body) == -1)
       {
         printf("%sforward Error%s\n", BG_RED, DEFAULT);
         break;
@@ -1014,10 +967,10 @@ int main(int argc, char** argv)
     }
 
     if (server_response_has_no_body)
-      break;
+    break;
 
     if (clientRequestAttributes.clientClose)
-      break;
+    break;
 
     printf("%sOne Loop(c->p->s->p->c) is done.%s\n", BG_PURPLE, DEFAULT);
 
@@ -1025,6 +978,75 @@ int main(int argc, char** argv)
   close(server_sd);
   close(client_sd);
 
+  pthread_exit(0);
+}
 
+
+
+
+int main(int argc, char** argv)
+{
+  // Check if argument count is 2
+  if (argc != 2)
+  {
+    printf("%sUsage: ./myproxy <Port>%s\n", BG_RED, DEFAULT);
+    exit(-1);
+  }
+  //TO-DO: Check if it is a valid port number
+  int PORT = atoi(argv[1]);
+
+  //debug
+  //printf("%smain(): PORT is now: %d%s\n", BG_YELLOW, PORT, DEFAULT);
+
+  // Create listening socket
+  int sd = socket(AF_INET, SOCK_STREAM, 0);
+  // Make port reusable
+  long val = 1;
+  if (setsockopt(sd, SOL_SOCKET, SO_REUSEADDR, &val, sizeof(long)) == -1)
+  {
+    perror("setsockopt");
+    exit(-1);
+  }
+
+  struct sockaddr_in server_addr;
+  memset(&server_addr,0,sizeof(server_addr));
+  server_addr.sin_family=AF_INET;
+  server_addr.sin_addr.s_addr=htonl(INADDR_ANY);
+  server_addr.sin_port=htons(PORT);
+
+  // Bind socket
+  if(bind(sd,(struct sockaddr *) &server_addr,sizeof(server_addr))<0)
+  {
+    printf("bind error: %s (Errno:%d)\n",strerror(errno),errno);
+    exit(-1);
+  }
+
+  // Listen socket
+  if(listen(sd,3)<0)
+  {
+    printf("listen error: %s (Errno:%d)\n",strerror(errno),errno);
+    exit(-1);
+  }
+
+  printf("%sWaiting for Incoming connections...%s\n", BG_PURPLE, DEFAULT);
+
+  while(1)
+  {
+    // Accept connection
+    struct sockaddr_in client_addr;
+    unsigned int addr_len = sizeof(client_addr);
+    int client_sd;
+    if ((client_sd=accept(sd, (struct sockaddr *)&client_addr, &addr_len))<0)
+    {
+      printf("%sAccept error%s\n", BG_RED, DEFAULT);
+      close(client_sd);
+      continue;
+    }
+
+    pthread_t newThread;
+    pthread_create(&newThread, NULL, workerThread, &client_sd);
+    pthread_detach(newThread);
+  }
+  close(sd);
   return 0;
 }
