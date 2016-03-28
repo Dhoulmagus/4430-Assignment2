@@ -91,10 +91,10 @@ struct requestAttributes parseRequestMessage(char* requestMessage)
   // Get ready to strtok
   char requestMessageCopy[MAX_REQUEST_SIZE];
   strcpy(requestMessageCopy, requestMessage);
-  char* lineSavePtr = malloc(1000);
-  char* wordSavePtr = malloc(1000);
-  char* tofree1 = lineSavePtr;
-  char* tofree2 = wordSavePtr;
+  char* lineSavePtr;
+  char* wordSavePtr;
+  // char* tofree1 = lineSavePtr;
+  // char* tofree2 = wordSavePtr;
   char* lineToken;
   char* wordToken;
 
@@ -238,9 +238,9 @@ struct requestAttributes parseRequestMessage(char* requestMessage)
 
 
   printf("%sFUCK%s\n", BG_RED, DEFAULT);
-  free(tofree1);
+  // free(tofree1);
   printf("%sFUCK2%s\n", BG_RED, DEFAULT);
-  free(tofree2);
+  // free(tofree2);
   printf("%sFUCK3%s\n", BG_RED, DEFAULT);
   return messageAttributes;
 }
