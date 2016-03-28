@@ -187,8 +187,10 @@ struct requestAttributes parseRequestMessage(char* requestMessage)
     }
   }
   strcpy(messageAttributes.extension, extension);
+
   //debug
-  //printf("extension is: %s%s%s\n", BG_YELLOW, messageAttributes.extension, DEFAULT);
+  printf("extension is: %s%s%s\n", BG_YELLOW, messageAttributes.extension, DEFAULT);
+
   if (strcasecmp(extension, "html") == 0 || strcasecmp(extension, "jpg") == 0 || strcasecmp(extension, "gif") == 0 ||
       strcasecmp(extension, "txt")  == 0 || strcasecmp(extension, "pdf") == 0)
       messageAttributes.typeNeedsCaching = 1;
