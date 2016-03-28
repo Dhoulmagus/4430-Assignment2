@@ -702,8 +702,9 @@ int main(int argc, char** argv)
 		}
     else if (bytesReceived == 0)
     {
-      printf("%sClient closed the connection. %s\n", BG_RED, DEFAULT);
-      exit(0);
+      continue;
+      // printf("%sClient closed the connection. %s\n", BG_RED, DEFAULT);
+      // exit(0);
     }
 
     //debug
