@@ -693,9 +693,9 @@ void* workerThread(void* args)
     // If server_sd can be reused, reuse it
     // Else, establish a connection to server
     if (server_sd_reusable)
-    printf("Server sd is reusable. Reuse server_sd: /%s%d%s/ now. \n", BG_PURPLE, server_sd, DEFAULT);
+      printf("Server sd is reusable. Reuse server_sd: /%s%d%s/ now. \n", BG_PURPLE, server_sd, DEFAULT);
     else
-    server_sd = connectToServer(clientRequestAttributes.Host, clientRequestAttributes.port);
+      server_sd = connectToServer(clientRequestAttributes.Host, clientRequestAttributes.port);
     server_sd_reusable = 1;
 
     char buf[MAX_REQUEST_SIZE];
@@ -747,16 +747,16 @@ void* workerThread(void* args)
         if (clientRequestAttributes.noCache)
         {
           if (clientRequestAttributes.IMS == 0)
-          caseNumber = 3;
+            caseNumber = 3;
           else
-          caseNumber = 4;
+            caseNumber = 4;
         }
         else
         {
           if (clientRequestAttributes.IMS == 0)
-          caseNumber = 1;
+            caseNumber = 1;
           else
-          caseNumber = 2;
+            caseNumber = 2;
         }
 
         //debug
@@ -769,7 +769,7 @@ void* workerThread(void* args)
           // Case 1:
           // Proxy directly respond the client with the cache
           if (respondCache(clientRequestAttributes.URL, client_sd) == -1)
-          break;
+            break;
 
           goto oneLoopisDone;
         }
@@ -785,11 +785,11 @@ void* workerThread(void* args)
             char block[512];
             sprintf(block, "HTTP/1.1 304 Not Modified\r\n\r\n");
             if (send(client_sd, block, strlen(block), MSG_NOSIGNAL) <= 0)
-            break;
+              break;
           }
           else
-          if (respondCache(clientRequestAttributes.URL, client_sd) == -1)
-          break;
+            if (respondCache(clientRequestAttributes.URL, client_sd) == -1)
+              break;
 
           goto oneLoopisDone;
         }
@@ -804,7 +804,7 @@ void* workerThread(void* args)
           getTimeStringfromRawTime(timeString, LMT);
           char* headerEnding = strstr(buf, "\r\n\r\n");
           *headerEnding = '\0';
-          sprintf(buf, "\r\nIf-Modified-Since: %s\r\n\r\n", timeString);
+          sprintf(headerEnding, "\r\nIf-Modified-Since: %s\r\n\r\n", timeString);
 
           //debug
           printf("%s=== case 3 buf ===%s\n", BG_YELLOW, DEFAULT);

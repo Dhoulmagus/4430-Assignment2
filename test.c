@@ -326,7 +326,7 @@ struct responseAttributes parseResponseHeader(char* responseHeader)
 
 int main(int argc, char** argv)
 {
-  char buf[8192];
+  // char buf[8192];
   // sprintf(buf, "GET http://www.cse.cuhk.edu.hk:32/diulei/fuck.pdf HTTP/1.1\r\n"
   // "Host: www.cse.cuhk.edu.hk\r\n"
   // "User-Agent: Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:45.0) Gecko/20100101 Firefox/45.0\r\n"
@@ -335,10 +335,10 @@ int main(int argc, char** argv)
   // "Accept-Encoding: gzip, deflate\r\n"
   // "Connection: close\r\n"
   // "\r\n");
-  sprintf(buf, "HTTP/1.1 200 OK\r\n"
-  "Date: Sun, 27 Feb 2011 04:09:33 GMT\r\n"
-  "Transfer-Encoding: chunked\r\n"
-  "Proxy-Connection: close\r\n\r\n");
+  // sprintf(buf, "HTTP/1.1 200 OK\r\n"
+  // "Date: Sun, 27 Feb 2011 04:09:33 GMT\r\n"
+  // "Transfer-Encoding: chunked\r\n"
+  // "Proxy-Connection: close\r\n\r\n");
 
   // printMsg(buf);
   //
@@ -383,8 +383,15 @@ int main(int argc, char** argv)
   // getTimeStringfromRawTime(timeString, IMS);
   // printf("time String from IMS is now: /%s/\n", timeString);
 
-  struct responseAttributes b;
-  b = parseResponseHeader(buf);
+  // struct responseAttributes b;
+  // b = parseResponseHeader(buf);
+
+  char test[50];
+  strcpy(test, "01234567");
+  printf("test is now /%s/\n", test);
+
+  test[4] = '\0';
+  printf("test is now /%s/\n", test);
 
   return 0;
 }
