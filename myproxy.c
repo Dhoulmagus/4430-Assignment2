@@ -160,6 +160,12 @@ struct requestAttributes parseRequestMessage(char* requestMessage)
   {
     char fileNameCopy[100];
     strcpy(fileNameCopy, fileName);
+
+    // If the filename string contains queryString, remove it
+    char *questionMarkPtr = strchr(fileNameCopy, '?');
+    if (questionMarkPtr != NULL)
+      *questionMarkPtr = '\0';
+
     wordToken = strtok_r(fileNameCopy, ".", &wordSavePtr);
     while ((wordToken = strtok_r(NULL, ".", &wordSavePtr)) != NULL)
     {
