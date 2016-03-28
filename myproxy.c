@@ -345,6 +345,7 @@ int respondCache(char* URL, int client_sd)
 
   char block[512];
 
+  pthread_mutex_lock(&mutex);
   FILE* fp = fopen(filepath, "rb");
   if (fp == NULL) return -1;
 
@@ -360,8 +361,8 @@ int respondCache(char* URL, int client_sd)
   } while(readSize > 0);
   printf("%srespondCache(): Totally respond %d bytes back to client. %s\n", BG_GREEN, totalSize, DEFAULT);
 
-
   fclose(fp);
+  pthread_mutex_unlock(&mutex);
   return 0;
 }
 
@@ -371,6 +372,7 @@ int respondCache(char* URL, int client_sd)
 int respondTempFile(int client_sd)
 {
   char block[512];
+  pthread_mutex_lock(&mutex);
   FILE* fp = fopen("./cache/temp", "rb");
 
   int readSize = 0;
@@ -386,6 +388,7 @@ int respondTempFile(int client_sd)
   printf("%srespondTempFile(): Totally respond %d bytes back to client. %s\n", BG_GREEN, totalSize, DEFAULT);
 
   fclose(fp);
+  pthread_mutex_unlock(&mutex);
   return 0;
 }
 
@@ -416,10 +419,8 @@ struct responseAttributes parseResponseHeader(char* responseHeader)
 
   char responseHeaderCopy[8192];
   strcpy(responseHeaderCopy, responseHeader);
-  char* lineSavePtr = malloc(200);
-  char* wordSavePtr = malloc(100);
-  char* tofree1 = lineSavePtr;
-  char* tofree2 = wordSavePtr;
+  char* lineSavePtr;
+  char* wordSavePtr;
   char* lineToken;
   char* wordToken;
 
@@ -492,8 +493,6 @@ struct responseAttributes parseResponseHeader(char* responseHeader)
     }
   }
 
-  free(tofree1);
-  free(tofree2);
   return headerAttributes;
 }
 
@@ -514,6 +513,7 @@ int cacheServerResponse(char* responseHeader, char* URL, int server_sd, int clie
   strcat(filepath, filename);
 
   // First write the header part of the response to cache file
+  pthread_mutex_lock(&mutex);
   FILE* fp = fopen(filepath, "wb");
   int byteWritten = fwrite(responseHeaderCopy, 1, strlen(responseHeaderCopy), fp);
   if (byteWritten == 0)
@@ -557,6 +557,7 @@ int cacheServerResponse(char* responseHeader, char* URL, int server_sd, int clie
   printf("%scacheServerResponse(): Cached and forwarded %d bytes in total%s\n", BG_PURPLE, totalSize, DEFAULT);
 
   fclose(fp);
+  pthread_mutex_unlock(&mutex);
   return 0;
 }
 
@@ -1068,5 +1069,5 @@ int main(int argc, char** argv)
     pthread_detach(newThread);
   }
   close(sd);
-  return 0;
+  pthread_exit(NULL);
 }
