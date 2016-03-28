@@ -173,11 +173,11 @@ struct requestAttributes parseRequestMessage(char* requestMessage)
       memset(fileNameCopy, 0, sizeof(fileNameCopy));
       strcpy(fileNameCopy, temp);
 
-      printf("%sparseRequestMessage(): Found query string and removed it. %s\n", BG_GREEN, DEFAULT);
+      //printf("%sparseRequestMessage(): Found query string and removed it. %s\n", BG_GREEN, DEFAULT);
     }
 
     //debug
-    printf("parseRequestMessage(): fileNameCopy is now: /%s%s%s/\n", BG_PURPLE, fileNameCopy, DEFAULT);
+    //printf("parseRequestMessage(): fileNameCopy is now: /%s%s%s/\n", BG_PURPLE, fileNameCopy, DEFAULT);
 
     wordToken = strtok_r(fileNameCopy, ".", &wordSavePtr);
     while ((wordToken = strtok_r(NULL, ".", &wordSavePtr)) != NULL)
@@ -189,7 +189,7 @@ struct requestAttributes parseRequestMessage(char* requestMessage)
   strcpy(messageAttributes.extension, extension);
 
   //debug
-  printf("extension is: %s%s%s\n", BG_YELLOW, messageAttributes.extension, DEFAULT);
+  //printf("extension is: %s%s%s\n", BG_YELLOW, messageAttributes.extension, DEFAULT);
 
   if (strcasecmp(extension, "html") == 0 || strcasecmp(extension, "jpg") == 0 || strcasecmp(extension, "gif") == 0 ||
       strcasecmp(extension, "txt")  == 0 || strcasecmp(extension, "pdf") == 0)
@@ -236,6 +236,8 @@ struct requestAttributes parseRequestMessage(char* requestMessage)
     }
   }
 
+
+  printf("%sFUCK%s\n", BG_RED, DEFAULT);
   free(tofree1);
   free(tofree2);
   return messageAttributes;
@@ -538,7 +540,7 @@ int cacheServerResponse(char* responseHeader, char* URL, int server_sd, int clie
       int readSize = read(server_sd, block, sizeof(block));
 
       //debug
-      printf("cacheServerResponse(): readSize is now: /%s%d%s/\n", BG_YELLOW, readSize, DEFAULT);
+      // printf("cacheServerResponse(): readSize is now: /%s%d%s/\n", BG_YELLOW, readSize, DEFAULT);
 
       if (readSize < 0) // read error?
         return -1;
