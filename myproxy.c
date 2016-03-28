@@ -162,9 +162,12 @@ struct requestAttributes parseRequestMessage(char* requestMessage)
     strcpy(fileNameCopy, fileName);
 
     // If the filename string contains queryString, remove it
-    char *questionMarkPtr = strchr(fileNameCopy, '?');
+    char *questionMarkPtr = strstr(fileNameCopy, "?");
     if (questionMarkPtr != NULL)
+    {
       *questionMarkPtr = '\0';
+      printf("%sparseRequestMessage(): Found query string and removed it. %s\n", BG_GREEN, DEFAULT);
+    }
 
     wordToken = strtok_r(fileNameCopy, ".", &wordSavePtr);
     while ((wordToken = strtok_r(NULL, ".", &wordSavePtr)) != NULL)
@@ -568,7 +571,7 @@ int forwardServerResponse(char* responseHeader, int server_sd, int client_sd, in
       int readSize = read(server_sd, block, sizeof(block));
 
       //debug
-      printf("forwardServerResponse(): readSize is now: /%s%d%s/\n", BG_YELLOW, readSize, DEFAULT);
+      // printf("forwardServerResponse(): readSize is now: /%s%d%s/\n", BG_YELLOW, readSize, DEFAULT);
 
       if (readSize < 0) // read error?
         return -1;
@@ -662,7 +665,7 @@ void* workerThread(void* args)
     }
     else if (bytesReceived == 0)
     {
-      printf("%sClient closed the connection. %s\n", BG_RED, DEFAULT);
+      printf("%stid %d: Client closed the connection. %s\n", BG_RED, tid, DEFAULT);
       pthread_exit(0);
     }
 
