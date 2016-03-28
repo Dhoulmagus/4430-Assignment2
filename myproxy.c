@@ -236,6 +236,7 @@ struct requestAttributes parseRequestMessage(char* requestMessage)
     }
   }
 
+  printf("%sGOOGLE ANALYTICS?%s\n", BG_RED, DEFAULT);
   return messageAttributes;
 }
 
