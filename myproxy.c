@@ -89,7 +89,7 @@ struct requestAttributes parseRequestMessage(char* requestMessage)
   //printRequestAttributes(&messageAttributes);
 
   // Get ready to strtok
-  char requestMessageCopy[8192];
+  char requestMessageCopy[MAX_REQUEST_SIZE];
   strcpy(requestMessageCopy, requestMessage);
   char* lineSavePtr = malloc(200);
   char* wordSavePtr = malloc(100);
@@ -100,13 +100,13 @@ struct requestAttributes parseRequestMessage(char* requestMessage)
 
   // Parse and get the first Line, i.e. the Request Line
   lineToken = strtok_r(requestMessageCopy, "\r\n", &lineSavePtr);
-  char requestLine[200];
+  char requestLine[1000];
   strcpy(requestLine, lineToken);
   //debug
   //printf("Request Line is: %s%s%s\n", BG_YELLOW, requestLine, DEFAULT);
 
   // Parse the first line to get method
-  char requestLineCopy[200];
+  char requestLineCopy[1000];
   strcpy(requestLineCopy, requestLine);
   wordToken = strtok_r(requestLineCopy, " ", &wordSavePtr);
   char method[15];
@@ -118,14 +118,14 @@ struct requestAttributes parseRequestMessage(char* requestMessage)
 
   // Parse the first line again to get URL
   wordToken = strtok_r(NULL, " ", &wordSavePtr);
-  char URL[200];
+  char URL[900];
   strcpy(URL, wordToken);
   strcpy(messageAttributes.URL, URL);
   //debug
   //printf("URL is: %s%s%s\n", BG_YELLOW, URL, DEFAULT);
 
   // Parse the URL to get the port
-  char URLCopy[200];
+  char URLCopy[900];
   strcpy(URLCopy, URL);
   char* pointerToColon = strchr(URLCopy+5, ':'); // Move the pointer 5 byte behind to avoid checking the colon in http:
   if (pointerToColon == NULL) // ':' is not found, so port is default 80
@@ -142,7 +142,7 @@ struct requestAttributes parseRequestMessage(char* requestMessage)
   //printf("port is: %s%d%s\n", BG_YELLOW, messageAttributes.port, DEFAULT);
 
   // Keep Parsing the URL to get the file name
-  char fileName[100];
+  char fileName[900];
   while ((wordToken = strtok_r(NULL, ":/", &wordSavePtr)) != NULL)
   {
     memset(fileName, 0, sizeof(fileName));
@@ -151,14 +151,14 @@ struct requestAttributes parseRequestMessage(char* requestMessage)
   printf("fileName is: %s%s%s\n", BG_YELLOW, fileName, DEFAULT);
 
   // Parse the file name to get the extension
-  char extension[10];
+  char extension[100];
   if (strcmp(fileName, "") == 0)
   {
     strcpy(extension, "html");
   }
   else
   {
-    char fileNameCopy[100];
+    char fileNameCopy[900];
     strcpy(fileNameCopy, fileName);
 
     // If the filename string contains queryString, remove it
