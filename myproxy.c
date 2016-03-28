@@ -694,7 +694,7 @@ int main(int argc, char** argv)
     // Read HTTP Request from the client
     char clientRequest[MAX_REQUEST_SIZE];
     strcpy(clientRequest, "");
-    int bytesReceived = read(client_sd, clientRequest, sizeof(clientRequest));
+    int bytesReceived = recv(client_sd, clientRequest, sizeof(clientRequest), 0);
     if(bytesReceived < 0)
 		{
 			printf("%sreceive error: %s (Errno:%d)%s\n",BG_RED, strerror(errno), errno, DEFAULT);
