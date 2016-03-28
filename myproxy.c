@@ -236,12 +236,6 @@ struct requestAttributes parseRequestMessage(char* requestMessage)
     }
   }
 
-
-  printf("%sFUCK%s\n", BG_RED, DEFAULT);
-  // free(tofree1);
-  printf("%sFUCK2%s\n", BG_RED, DEFAULT);
-  // free(tofree2);
-  printf("%sFUCK3%s\n", BG_RED, DEFAULT);
   return messageAttributes;
 }
 
@@ -693,6 +687,7 @@ void* workerThread(void* args)
     // Parse the HTTP Request to struct requestAttributes
     struct requestAttributes clientRequestAttributes = parseRequestMessage(clientRequest);
 
+    printf("%sGOOGLE ANALYTICS%s\n", BG_RED, DEFAULT);
     // If server_sd can be reused, reuse it
     // Else, establish a connection to server
     if (server_sd_reusable)
